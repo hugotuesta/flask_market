@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, flash
 from market import app
 from market.models import Item, User
 from market.forms import RegisterForm
@@ -26,5 +26,5 @@ def register_page():
         return redirect(url_for('market_page'))
     if form.errors != {}: # There are not errors
         for key, value in form.errors.items():
-            print(f'There was an error with creating a user in field {key}: {value}')
+            flash(f'There was an error with creating a user in field {key}: {value}', category='danger')
     return render_template('register.html', form=form)
