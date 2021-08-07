@@ -1,5 +1,5 @@
-from flask import render_template, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_user, logout_user, login_required, current_user
 from market import app
 from market.models import Item, User
 from market.forms import RegisterForm, LoginForm, PurchaseItemForm
@@ -14,8 +14,13 @@ def home_page():
 @login_required
 def market_page():
     purchase_form = PurchaseItemForm()
-    if purchase_form.validate_on_submit():
-        print(purchase_form['submit'])
+    if request.method == 'POST':
+        purchased_item = request.form.get('purchased_item')
+        p_item_obj = Item.query.filter_by(name=purchased_item).first()
+        if p_item_obj:
+            p_item_obj.owner = current_user.id
+            current_user.budget -= p_item_obj.price
+            db.session.commit()
     items = Item.query.all()
     return render_template('market.html', items=items, purchase_form=purchase_form)
 
