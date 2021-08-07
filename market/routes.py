@@ -1,5 +1,5 @@
-from flask import render_template, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_user, logout_user, login_required, current_user
 from market import app
 from market.models import Item, User
 from market.forms import RegisterForm, LoginForm, PurchaseItemForm
@@ -14,10 +14,21 @@ def home_page():
 @login_required
 def market_page():
     purchase_form = PurchaseItemForm()
-    if purchase_form.validate_on_submit():
-        print(purchase_form['submit'])
-    items = Item.query.all()
-    return render_template('market.html', items=items, purchase_form=purchase_form)
+    if request.method == 'POST':
+        purchased_item = request.form.get('purchased_item')
+        p_item_obj = Item.query.filter_by(name=purchased_item).first()
+        if p_item_obj:
+            if current_user.can_purchase(p_item_obj):
+                p_item_obj.buy(current_user)
+                flash(f'Congratulations!!! you purchased {p_item_obj.name} for {p_item_obj.price}$', category='success')
+            else:
+                flash(f'Unfortunately!!! you don\'t have enought money to purchase {p_item_obj.name} for {p_item_obj.price}$', category='danger')
+        
+        return redirect(url_for('market_page'))
+
+    if request.method == 'GET':
+        items = Item.query.filter_by(owner=None)
+        return render_template('market.html', items=items, purchase_form=purchase_form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
