@@ -44,7 +44,7 @@ def register_page():
         flash(f'Account created successfully! You are now logged in as {user_to_create.username}', category='success')
 
         return redirect(url_for('market_page'))
-    if form.errors != {}: # There are not errors
+    if form.errors != {}:
         for key, value in form.errors.items():
             flash(f'There was an error with creating a user in field {key}: {value}', category='danger')
     return render_template('register.html', form=form)
